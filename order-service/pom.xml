@@ -77,6 +77,12 @@
             <version>3.29.0-GA</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
+            <version>3.0.6</version>
+        </dependency>
+
 
     </dependencies>
     <dependencyManagement>

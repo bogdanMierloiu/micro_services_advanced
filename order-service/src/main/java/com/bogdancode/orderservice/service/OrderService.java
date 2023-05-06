@@ -5,12 +5,14 @@ import brave.Tracer;
 import com.bogdancode.orderservice.dto.InventoryResponse;
 import com.bogdancode.orderservice.dto.OrderLineItemsDto;
 import com.bogdancode.orderservice.dto.OrderRequest;
+import com.bogdancode.orderservice.event.OrderPlacedEvent;
 import com.bogdancode.orderservice.model.Order;
 import com.bogdancode.orderservice.model.OrderLineItems;
 import com.bogdancode.orderservice.repository.OrderRepository;
 import io.micrometer.tracing.annotation.NewSpan;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -26,6 +28,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final WebClient.Builder webClientBuilder;
     private final Tracer tracer;
+    private final KafkaTemplate<String, OrderPlacedEvent> kafkaTemplate;
 
     @NewSpan("placeOrder")
     public String placeOrder(OrderRequest orderRequest) {
@@ -61,6 +64,7 @@ public class OrderService {
             }
 
             orderRepository.save(order);
+            kafkaTemplate.send("notificationTopic", new OrderPlacedEvent(order.getOrderNumber()));
             return "Order Placed Successfully";
         } finally {
             newSpan.finish();
